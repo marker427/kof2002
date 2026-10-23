@@ -110,10 +110,19 @@
     // FBNeo는 아카이브 파일 이름을 롬셋 이름으로 인식하므로 이름을 고정합니다.
     var gameFile = new File([rom], "kof2002.zip", { type: "application/zip" });
 
+    // FBNeo는 BIOS를 neogeo.zip 이라는 "이름"으로 찾습니다.
+    // EJS_biosUrl은 ZIP을 풀어서 안쪽 파일만 FS 루트에 쓰기 때문에
+    // neogeo.zip 자체는 만들어지지 않습니다. 그래서 같은 바이트를
+    // EJS_externalFiles로 /neogeo.zip 경로에 한 번 더 넣어 둡니다.
+    // (downloadFile이 blob URL을 revoke하므로 URL은 각각 따로 만듭니다.)
+    var biosUrlForZip = URL.createObjectURL(bios);
+    var biosUrlForExtract = URL.createObjectURL(bios);
+
     window.EJS_player = "#game";
     window.EJS_core = "arcade";
     window.EJS_gameUrl = gameFile;
-    window.EJS_biosUrl = URL.createObjectURL(bios); // Blob URL은 문자열 경로로 처리됩니다.
+    window.EJS_biosUrl = biosUrlForExtract; // 기존 동작(내부 파일 추출) 유지
+    window.EJS_externalFiles = { "/neogeo.zip": biosUrlForZip };
     window.EJS_pathtodata = EJS_DATA;
     window.EJS_language = "ko-KO";
     window.EJS_color = "#e01f36";
@@ -133,6 +142,8 @@
     script.onerror = function () {
       launched = false;
       startBtn.disabled = false;
+      romInput.disabled = false;
+      biosInput.disabled = false;
       setStatus(
         "에뮬레이터 파일을 내려받지 못했습니다. 인터넷 연결 또는 CDN 차단 여부를 확인하세요.",
         true
