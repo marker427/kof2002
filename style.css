@@ -1,0 +1,279 @@
+:root {
+  --bg: #08080c;
+  --panel: #111118;
+  --line: #23232e;
+  --text: #eceaf3;
+  --muted: #9a97a8;
+  --accent: #e01f36;
+  --accent-soft: #ff5a68;
+  --gold: #f0c05a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background:
+    radial-gradient(1100px 520px at 50% -180px, #26101a 0%, transparent 70%),
+    var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic",
+    "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.hero {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 56px 20px 8px;
+}
+
+.kicker {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  color: var(--accent-soft);
+  font-weight: 700;
+}
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.sub {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+  max-width: 640px;
+}
+
+main {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 20px 40px;
+}
+
+.notice {
+  border: 1px solid #3a1c22;
+  background: #180d11;
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 14px;
+  color: #e7cdd2;
+}
+
+.notice strong { color: #ff9aa6; }
+
+.panel, .help, .stage {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 22px;
+  margin-top: 22px;
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  letter-spacing: -0.01em;
+}
+
+.picker {
+  border: 1px dashed #2f2f3d;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  background: #0d0d14;
+}
+
+.picker__label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.picker__step {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.picker__hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+code, kbd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+code {
+  background: #1b1b25;
+  border: 1px solid #2b2b38;
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 12.5px;
+  color: var(--gold);
+}
+
+kbd {
+  background: #1d1d28;
+  border: 1px solid #33333f;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-size: 12.5px;
+}
+
+input[type="file"] {
+  margin-top: 10px;
+  width: 100%;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+input[type="file"]::file-selector-button {
+  margin-right: 10px;
+  padding: 7px 12px;
+  border: 1px solid #34343f;
+  border-radius: 7px;
+  background: #191922;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover { background: #21212c; }
+
+.picker__file {
+  margin: 8px 0 0;
+  font-size: 12.5px;
+  color: #6f6c7e;
+}
+
+.picker__file.is-set { color: #8fe0a8; }
+
+.start {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px 20px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #e8243b, #b8121f);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.start:hover:not(:disabled) { filter: brightness(1.08); }
+.start:active:not(:disabled) { transform: translateY(1px); }
+
+.start:disabled {
+  background: #24242f;
+  color: #6a6779;
+  cursor: not-allowed;
+}
+
+.status {
+  min-height: 20px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.status.is-error { color: #ff8b96; }
+
+.stage__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.stage__bar h2 { margin: 0; }
+
+.ghost {
+  padding: 7px 12px;
+  border: 1px solid #34343f;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.ghost:hover { color: var(--text); border-color: #4a4a58; }
+
+/* EmulatorJS host element */
+#game {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#game.ejs_started { aspect-ratio: auto; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th, td {
+  text-align: left;
+  padding: 8px 0;
+  border-bottom: 1px solid #1e1e28;
+  vertical-align: middle;
+}
+
+th {
+  width: 42%;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+tr:last-child th, tr:last-child td { border-bottom: 0; }
+
+.small {
+  margin: 14px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.small em { font-style: normal; color: #c9c6d6; }
+
+footer {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 20px 56px;
+  font-size: 12.5px;
+  color: #615f70;
+}
+
+footer a { color: #8a8798; }
+
+footer a:hover { color: var(--text); }
+
+@media (max-width: 560px) {
+  .hero { padding-top: 36px; }
+  .panel, .help, .stage { padding: 16px; }
+}
+

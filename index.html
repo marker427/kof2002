@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>KOF 2002 — 혼자 하는 1인 플레이</title>
+<meta name="description" content="본인이 보유한 KOF 2002 ROM과 Neo Geo BIOS를 선택해 브라우저에서 1인(CPU 대전)으로 즐기는 페이지" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<header class="hero">
+  <p class="kicker">THE KING OF FIGHTERS 2002</p>
+  <h1>혼자서 즐기는 KOF 2002</h1>
+  <p class="sub">
+    내 컴퓨터에 있는 게임 파일을 직접 선택하면, 브라우저 안에서 에뮬레이터가 열립니다.
+    파일은 서버로 전송되지 않고 이 브라우저 안에서만 사용됩니다.
+  </p>
+</header>
+
+<main>
+  <section class="notice" aria-label="저작권 안내">
+    <strong>게임 파일은 이 사이트에 없습니다.</strong>
+    이 페이지는 에뮬레이터 화면만 제공합니다. 정당하게 보유한 KOF 2002 ROM과 Neo Geo BIOS가
+    있어야 실행되며, 그 파일을 제공하거나 내려받도록 안내하지 않습니다.
+  </section>
+
+  <section id="setup" class="panel" aria-label="파일 선택">
+    <h2>1. 파일 두 개를 선택하세요</h2>
+
+    <div class="picker">
+      <label class="picker__label" for="romInput">
+        <span class="picker__step">게임 ROM</span>
+        <span class="picker__hint"><code>kof2002.zip</code></span>
+      </label>
+      <input id="romInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" />
+      <p class="picker__file" id="romFile">선택된 파일 없음</p>
+    </div>
+
+    <div class="picker">
+      <label class="picker__label" for="biosInput">
+        <span class="picker__step">Neo Geo BIOS</span>
+        <span class="picker__hint"><code>neogeo.zip</code></span>
+      </label>
+      <input id="biosInput" type="file" accept=".zip,application/zip,application/x-zip-compressed" />
+      <p class="picker__file" id="biosFile">선택된 파일 없음</p>
+    </div>
+
+    <button id="startBtn" class="start" type="button" disabled>게임 시작</button>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section id="stage" class="stage" hidden>
+    <div class="stage__bar">
+      <h2>2. 플레이</h2>
+      <button id="resetBtn" class="ghost" type="button">파일 다시 선택</button>
+    </div>
+    <div id="game"></div>
+  </section>
+
+  <section class="help">
+    <h2>조작 방법 (1P 키보드 기본값)</h2>
+    <table>
+      <tbody>
+        <tr><th>이동</th><td>방향키</td></tr>
+        <tr><th>A (약손)</th><td><kbd>Z</kbd></td></tr>
+        <tr><th>B (약발)</th><td><kbd>X</kbd></td></tr>
+        <tr><th>C (강손)</th><td><kbd>A</kbd></td></tr>
+        <tr><th>D (강발)</th><td><kbd>S</kbd></td></tr>
+        <tr><th>START</th><td><kbd>Enter</kbd></td></tr>
+        <tr><th>SELECT (코인)</th><td><kbd>V</kbd></td></tr>
+      </tbody>
+    </table>
+    <p class="small">
+      에뮬레이터 화면의 톱니바퀴 아이콘에서 <em>Control Settings</em>를 열면 키를 바꿀 수 있습니다.
+      게임 패드가 연결되어 있으면 자동으로 인식됩니다.
+    </p>
+    <p class="small">
+      게임이 시작되면 <kbd>Enter</kbd>로 모드를 고르고, CPU와 1:1 대전을 선택하면 혼자서 즐길 수 있습니다.
+    </p>
+  </section>
+</main>
+
+<footer>
+  <p>
+    에뮬레이터: <a href="https://emulatorjs.org" target="_blank" rel="noopener noreferrer">EmulatorJS</a>
+    (FBNeo 아케이드 코어). 이 페이지는 어떤 게임 파일도 호스팅하지 않습니다.
+  </p>
+</footer>
+
+<script src="app.js"></script>
+</body>
+</html>
+
