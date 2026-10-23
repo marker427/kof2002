@@ -2,6 +2,18 @@
  *
  * 에뮬레이터: EmulatorJS 4.2.3 (FBNeo 아케이드 코어)
  * 게임 ROM과 BIOS는 사용자가 로컬에서 선택하며, 이 브라우저 밖으로 나가지 않습니다.
+ *
+ * [BIOS 처리 방식 — 4.2.3 소스 확인 결과]
+ * FBNeo(libretro)는 locate_archive()에서 "neogeo.zip" 이라는 이름의 압축 파일만
+ * 엽니다(g_rom_dir, g_system_dir, g_system_dir/fbneo). 압축을 풀어 둔 개별 파일
+ * (sm1.sm1, sfix.sfix, 000-lo.lo ...)은 읽지 않습니다. 따라서 BIOS는 반드시
+ * 하나의 완전한 ZIP으로 가상 파일시스템의 "/neogeo.zip"에 있어야 합니다.
+ *
+ * 그런데 EmulatorJS 4.2.3의 EJS_GameManager.loadExternalFiles()는
+ *   this.writeFile(path, res.data)   // res.data는 ArrayBuffer
+ * 로 씁니다. 이 호출은 이 Emscripten FS에서 0바이트 파일을 만듭니다.
+ * (Uint8Array로 감싸야 함) 그래서 아래에서 writeFile을 감싸는 패치를 설치하고,
+ * 실행 직전에 /neogeo.zip 크기를 실제 바이트 수와 대조해 필요하면 다시 씁니다.
  */
 (function () {
   "use strict";
@@ -97,6 +109,69 @@
     refresh();
   }
 
+  /* --- 4.2.3 버그 우회: ArrayBuffer → Uint8Array ------------------------- */
+
+  function patchWriteFile() {
+    var GM = window.EJS_GameManager;
+    if (!GM || !GM.prototype || GM.prototype.__ejsArrayBufferFix) return !!GM;
+
+    var original = GM.prototype.writeFile;
+    GM.prototype.writeFile = function (path, data) {
+      if (data && data.constructor === ArrayBuffer) {
+        data = new Uint8Array(data);
+      } else if (typeof SharedArrayBuffer !== "undefined" && data && data.constructor === SharedArrayBuffer) {
+        data = new Uint8Array(data);
+      }
+      return original.call(this, path, data);
+    };
+    GM.prototype.__ejsArrayBufferFix = true;
+    return true;
+  }
+
+  function installWriteFilePatch() {
+    if (patchWriteFile()) return;
+    var deadline = Date.now() + 15000;
+    var timer = setInterval(function () {
+      if (patchWriteFile() || Date.now() > deadline) clearInterval(timer);
+    }, 10);
+  }
+
+  function biosBytes() {
+    return bios.arrayBuffer().then(function (buf) { return new Uint8Array(buf); });
+  }
+
+  /* 실행 직전 /neogeo.zip 이 실제 BIOS 바이트와 같은지 확인하고, 다르면 다시 씁니다. */
+  function verifyBiosArchive(bytes) {
+    var deadline = Date.now() + 30000;
+    var timer = setInterval(function () {
+      var ejs = window.EJS_emulator;
+      var gm = ejs && ejs.gameManager;
+      if (!gm || !gm.FS) {
+        if (Date.now() > deadline) clearInterval(timer);
+        return;
+      }
+      clearInterval(timer);
+
+      var size = -1;
+      try { size = gm.FS.stat("/neogeo.zip").size; } catch (e) { size = -1; }
+
+      if (size === bytes.length) {
+        console.info("[KOF2002] /neogeo.zip 정상:", size, "bytes");
+        return;
+      }
+      console.warn("[KOF2002] /neogeo.zip 크기 불일치(" + size + " → " + bytes.length + "), 다시 씁니다.");
+      try {
+        gm.writeFile("/neogeo.zip", bytes);
+        var after = gm.FS.stat("/neogeo.zip").size;
+        console.info("[KOF2002] /neogeo.zip 재기록 완료:", after, "bytes");
+      } catch (e) {
+        console.warn("[KOF2002] /neogeo.zip 재기록 실패:", e);
+      }
+    }, 20);
+  }
+
+  /* ----------------------------------------------------------------------- */
+
   function launch() {
     if (!rom || !bios || launched) return;
     launched = true;
@@ -110,18 +185,19 @@
     // FBNeo는 아카이브 파일 이름을 롬셋 이름으로 인식하므로 이름을 고정합니다.
     var gameFile = new File([rom], "kof2002.zip", { type: "application/zip" });
 
-    // FBNeo는 BIOS를 neogeo.zip 이라는 "이름"으로 찾습니다.
-    // EJS_biosUrl은 ZIP을 풀어서 안쪽 파일만 FS 루트에 쓰기 때문에
-    // neogeo.zip 자체는 만들어지지 않습니다. 그래서 같은 바이트를
-    // EJS_externalFiles로 /neogeo.zip 경로에 한 번 더 넣어 둡니다.
-    // (downloadFile이 blob URL을 revoke하므로 URL은 각각 따로 만듭니다.)
+    // BIOS는 두 경로로 넘깁니다.
+    //  - externalFiles: "/neogeo.zip" 이라는 완전한 ZIP으로 배치 (FBNeo가 실제로 여는 것)
+    //  - biosUrl:       개별 파일 추출용 (FBNeo에는 필요 없지만 다른 코어 호환용으로 유지)
     var biosUrlForZip = URL.createObjectURL(bios);
     var biosUrlForExtract = URL.createObjectURL(bios);
+    var bytesPromise = biosBytes();
+
+    installWriteFilePatch();
 
     window.EJS_player = "#game";
     window.EJS_core = "arcade";
     window.EJS_gameUrl = gameFile;
-    window.EJS_biosUrl = biosUrlForExtract; // 기존 동작(내부 파일 추출) 유지
+    window.EJS_biosUrl = biosUrlForExtract;
     window.EJS_externalFiles = { "/neogeo.zip": biosUrlForZip };
     window.EJS_pathtodata = EJS_DATA;
     window.EJS_language = "ko-KO";
@@ -130,11 +206,21 @@
     window.EJS_startOnLoaded = false;
 
     window.EJS_ready = function () {
+      patchWriteFile();
       setStatus("에뮬레이터 준비 완료. 화면의 ‘플레이’ 버튼을 누르세요.");
+      bytesPromise.then(function (bytes) { verifyBiosArchive(bytes); });
     };
 
     window.EJS_onGameStart = function () {
-      setStatus("실행 중입니다.");
+      var gm = window.EJS_emulator && window.EJS_emulator.gameManager;
+      var size = -1;
+      try { size = gm.FS.stat("/neogeo.zip").size; } catch (e) {}
+      var expected = bios.size;
+      if (size === expected) {
+        setStatus("실행 중입니다.");
+      } else {
+        setStatus("실행 중입니다. (BIOS 확인 필요: /neogeo.zip " + size + " bytes / 원본 " + expected + " bytes)", true);
+      }
     };
 
     var script = document.createElement("script");
@@ -142,8 +228,6 @@
     script.onerror = function () {
       launched = false;
       startBtn.disabled = false;
-      romInput.disabled = false;
-      biosInput.disabled = false;
       setStatus(
         "에뮬레이터 파일을 내려받지 못했습니다. 인터넷 연결 또는 CDN 차단 여부를 확인하세요.",
         true
@@ -166,4 +250,5 @@
 
   refresh();
 })();
+
 
